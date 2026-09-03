@@ -1,0 +1,54 @@
+# Move the short version tags to each stable release.
+name: release-tags
+on:
+  push:
+    tags: ["v*"]
+permissions: { contents: write }
+
+jobs:
+  move:
+    runs-on: ubuntu-latest
+    steps:
+      # Every tag, because a short tag only moves when the pushed release is the
+      # newest one sharing its prefix, and that cannot be decided from one ref.
+      - uses: actions/checkout@v6
+        with: { fetch-depth: 0 }
+      - shell: bash
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+
+          # Ignore invalid tags and prereleases.
+          case "$TAG" in
+            v[0-9]*.[0-9]*.[0-9]*) ;;
+            *) echo "$TAG is not a release tag; nothing to move."; exit 0 ;;
+          esac
+          case "$TAG" in
+            *-* | *+*) echo "$TAG is a prerelease; nothing to move."; exit 0 ;;
+          esac
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          major="${TAG%%.*}"
+          minor="${TAG%.*}"
+          for short in "$major" "$minor"; do
+            # A patch released behind an existing line -- v0.4.5 cut after v0.5.0
+            # -- still owns `v0.4`, but moving `v0` to it would walk every
+            # `@v0` consumer backwards. Move a short tag only when this release
+            # is the highest one under it.
+            # Stable releases under this prefix only: no prereleases, and not
+            # the short tags themselves. `|| true` because the first release
+            # under a new prefix matches nothing but itself.
+            releases="$(git tag --list "$short.*" |
+              grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' || true)"
+            newest="$(printf '%s\n' "$releases" | sort -V | tail -n1)"
+            if [ "$newest" != "$TAG" ]; then
+              echo "$short stays at $newest; $TAG is older."
+              continue
+            fi
+            git tag -f -a "$short" -m "$short is $TAG" "$GITHUB_SHA"
+            git push -f origin "refs/tags/$short"
+            echo "$short -> $TAG"
+          done

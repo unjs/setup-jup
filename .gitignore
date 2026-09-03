@@ -1,0 +1,10 @@
+.DS_Store
+*.log*
+
+# What the test workflow's installs leave in the fixture projects. The manifests
+# are committed; nothing a manager writes beside them is.
+/.github/fixtures/*/node_modules
+/.github/fixtures/*/.yarn
+/.github/fixtures/*/.pnp.*
+/.github/fixtures/*/pnpm-lock.yaml
+/.github/fixtures/*/package-lock.json

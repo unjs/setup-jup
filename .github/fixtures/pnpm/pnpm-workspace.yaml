@@ -1,0 +1,4 @@
+# This fixture stands in for a repository of its own. pnpm installs at the
+# nearest workspace root at or above it, so this file is what keeps `jup install`
+# here from reaching for anything that later lands above this directory.
+packages: []
