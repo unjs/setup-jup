@@ -3,6 +3,8 @@
 Set up Node.js, a package manager, and dependencies in one step, from your
 project's own pins, with [jup](https://jup.unjs.io).
 
+Runs on Linux, macOS, and Windows runners.
+
 ```yaml
 - uses: actions/checkout@v6
 - uses: unjs/setup-jup@v1
@@ -18,10 +20,12 @@ it. jup then installs the Node.js version your project asks for.
 
 ## Versioning
 
-`unjs/setup-jup@v1` tracks the latest v1 of **this action**. `@v1.2` stays on a
-minor line, and a full tag such as `@v1.2.0` is fixed.
+`unjs/setup-jup@v1` tracks the latest v1 of **this action**. `@v1.0` stays on a
+minor line, and a full tag such as `@v1.0.0` is fixed. A commit SHA is the
+strictest pin, and the one to use where a moving tag is not acceptable.
 
-The action's version is not jup's. Pin the tool with `jup-version`:
+The action's version is not jup's, and pinning one does not pin the other. Pin
+the tool with `jup-version`:
 
 ```yaml
 - uses: unjs/setup-jup@v1
