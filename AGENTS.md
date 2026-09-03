@@ -52,23 +52,17 @@ Both pins MUST move together.
 
 Publish `vX.Y.Z` from the GitHub Releases page, creating the tag on publish.
 Treat a change to an existing input, default or output as at least a minor
-release.
+release. Published tags are never moved, and no short `vX` tags exist: the
+readme pins a digest instead, which is the pin this action asks of its own
+dependencies in `action.yml`.
 
-Then move the short tags by hand, once the release's `test` run is green:
+Once the release exists, repin the readme and commit it:
 
 ```sh
-git fetch --tags
-git tag -f v1 v1.2.0
-git tag -f v1.2 v1.2.0
-git push -f origin v1 v1.2
+scripts/update-digest.sh
 ```
 
-Move a short tag only when the release is the newest one under it. A patch
-released behind an existing line -- `v1.4.5` cut after `v1.5.0` -- owns `v1.4`,
-but moving `v1` to it would walk every `@v1` consumer backwards.
-
-No workflow does this. The short tags are the ones that move under people who
-already wrote `@v1`, and four commands a few times a year are cheaper to reason
-about than a job with a token that can rewrite them. The `tags` ruleset keeps
-`refs/tags/v*.*.*` immutable for the same reason; `v1` and `v1.2` sit outside it
-because moving them is the point.
+It reads the newest stable tag from the remote, resolves it to a commit, and
+rewrites the `uses:` lines. It fetches nothing into the clone and makes no
+commit, so it is safe to run against a dirty tree, and running it twice is a
+no-op.
