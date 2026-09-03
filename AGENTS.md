@@ -50,13 +50,25 @@ Both pins MUST move together.
 
 ## Releases
 
-Tag a release `vX.Y.Z` and publish it to the Marketplace from its GitHub
-release page. Treat a change to an existing input, default or output as at least
-a minor release.
+Publish `vX.Y.Z` from the GitHub Releases page, creating the tag on publish.
+Treat a change to an existing input, default or output as at least a minor
+release.
 
-Moving the short `vX` and `vX.Y` tags is a separate, deliberate step: dispatch
-`.github/workflows/release-tags.yml` with the release tag once its `test` run is
-green. Nothing moves them automatically, and the job MUST stay behind the
-`release-tags` environment's reviewers -- these are the tags that move under
-people who already wrote `@vX`. It refuses prereleases and missing tags, and it
-skips a release that is not the newest under its prefix unless `force` is set.
+Then move the short tags by hand, once the release's `test` run is green:
+
+```sh
+git fetch --tags
+git tag -f v1 v1.2.0
+git tag -f v1.2 v1.2.0
+git push -f origin v1 v1.2
+```
+
+Move a short tag only when the release is the newest one under it. A patch
+released behind an existing line -- `v1.4.5` cut after `v1.5.0` -- owns `v1.4`,
+but moving `v1` to it would walk every `@v1` consumer backwards.
+
+No workflow does this. The short tags are the ones that move under people who
+already wrote `@v1`, and four commands a few times a year are cheaper to reason
+about than a job with a token that can rewrite them. The `tags` ruleset keeps
+`refs/tags/v*.*.*` immutable for the same reason; `v1` and `v1.2` sit outside it
+because moving them is the point.
