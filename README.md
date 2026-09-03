@@ -7,7 +7,7 @@ Runs on Linux, macOS, and Windows runners.
 
 ```yaml
 - uses: actions/checkout@v6
-- uses: unjs/setup-jup@v1
+- uses: unjs/setup-jup@v1.0.0
 - run: pnpm test
 ```
 
@@ -20,15 +20,15 @@ it. jup then installs the Node.js version your project asks for.
 
 ## Versioning
 
-`unjs/setup-jup@v1` tracks the latest v1 of **this action**. `@v1.0` stays on a
-minor line, and a full tag such as `@v1.0.0` is fixed. A commit SHA is the
-strictest pin, and the one to use where a moving tag is not acceptable.
+Pin a full release tag, such as `unjs/setup-jup@v1.0.0`. Every published tag
+names one commit and never moves, so a job that passes today passes tomorrow.
+A commit SHA is the strictest form of the same pin.
 
 The action's version is not jup's, and pinning one does not pin the other. Pin
 the tool with `jup-version`:
 
 ```yaml
-- uses: unjs/setup-jup@v1
+- uses: unjs/setup-jup@v1.0.0
   with:
     jup-version: 0.5.4
 ```
@@ -41,7 +41,7 @@ repeatable jobs. `setup-jup` requires jup 0.5.2 or newer.
 Choose a Node.js version and install dependencies yourself:
 
 ```yaml
-- uses: unjs/setup-jup@v1
+- uses: unjs/setup-jup@v1.0.0
   with:
     node-version: 22
     install: false
@@ -51,7 +51,7 @@ Choose a Node.js version and install dependencies yourself:
 Or pass the arguments through:
 
 ```yaml
-- uses: unjs/setup-jup@v1
+- uses: unjs/setup-jup@v1.0.0
   with:
     install: --frozen-lockfile
 ```
@@ -64,7 +64,7 @@ strategy:
     node-version: [22, 24]
 steps:
   - uses: actions/checkout@v6
-  - uses: unjs/setup-jup@v1
+  - uses: unjs/setup-jup@v1.0.0
     with:
       node-version: ${{ matrix.node-version }}
   - run: pnpm test
@@ -74,7 +74,7 @@ Set up one package in a monorepo. jup searches parent directories, so the
 package can use a pin from the root:
 
 ```yaml
-- uses: unjs/setup-jup@v1
+- uses: unjs/setup-jup@v1.0.0
   with:
     working-directory: packages/app
 ```
