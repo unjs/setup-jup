@@ -1,32 +1,62 @@
-# Move the short version tags to each stable release.
+# Move the short version tags -- `v1`, `v1.2` -- to a release.
+#
+# Nothing here is automatic. `vX.Y.Z` is what a release publishes and what a
+# consumer can pin; the short tags are the ones that move under people who wrote
+# `@v1`, so moving them is a deliberate act with a reviewer behind it. Run this
+# after the release tag exists and its `test` run is green.
 name: release-tags
 on:
-  push:
-    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: The release tag to point the short tags at, such as v1.2.0.
+        required: true
+        type: string
+      force:
+        description: Move a short tag even when a newer release sits under it.
+        required: false
+        type: boolean
+        default: false
 permissions: { contents: write }
 
 jobs:
   move:
     runs-on: ubuntu-latest
+    # Approval gate. Add the reviewers to this environment in the repository
+    # settings; without them the job runs unreviewed, which is the one thing
+    # this workflow exists to prevent.
+    environment: release-tags
     steps:
-      # Every tag, because a short tag only moves when the pushed release is the
-      # newest one sharing its prefix, and that cannot be decided from one ref.
+      # Every tag, because the release commit is not the dispatched ref and the
+      # newest-release check reads the whole tag list.
       - uses: actions/checkout@v6
         with: { fetch-depth: 0 }
+
       - shell: bash
         env:
-          TAG: ${{ github.ref_name }}
+          TAG: ${{ inputs.tag }}
+          FORCE: ${{ inputs.force }}
         run: |
           set -euo pipefail
 
-          # Ignore invalid tags and prereleases.
+          # A stable release tag and nothing else: a prerelease is not something
+          # `@v1` should ever resolve to.
           case "$TAG" in
             v[0-9]*.[0-9]*.[0-9]*) ;;
-            *) echo "$TAG is not a release tag; nothing to move."; exit 0 ;;
+            *) echo "::error::$TAG is not a release tag."; exit 1 ;;
           esac
           case "$TAG" in
-            *-* | *+*) echo "$TAG is a prerelease; nothing to move."; exit 0 ;;
+            *-* | *+*) echo "::error::$TAG is a prerelease."; exit 1 ;;
           esac
+
+          # Dispatch carries the branch head in `GITHUB_SHA`, so the release
+          # commit has to be read from the tag itself. This also proves the tag
+          # exists, which a typed input otherwise does not.
+          if ! sha="$(git rev-parse --verify --quiet "refs/tags/$TAG^{commit}")"; then
+            echo "::error::$TAG does not exist. Push the release tag first."
+            exit 1
+          fi
+          echo "$TAG is $sha"
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -34,21 +64,23 @@ jobs:
           major="${TAG%%.*}"
           minor="${TAG%.*}"
           for short in "$major" "$minor"; do
-            # A patch released behind an existing line -- v0.4.5 cut after v0.5.0
-            # -- still owns `v0.4`, but moving `v0` to it would walk every
-            # `@v0` consumer backwards. Move a short tag only when this release
-            # is the highest one under it.
+            # A patch released behind an existing line -- v1.4.5 cut after
+            # v1.5.0 -- still owns `v1.4`, but moving `v1` to it would walk
+            # every `@v1` consumer backwards. `force` is for the case where
+            # that is the intent, such as yanking a bad release.
+            #
             # Stable releases under this prefix only: no prereleases, and not
             # the short tags themselves. `|| true` because the first release
             # under a new prefix matches nothing but itself.
             releases="$(git tag --list "$short.*" |
               grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' || true)"
             newest="$(printf '%s\n' "$releases" | sort -V | tail -n1)"
-            if [ "$newest" != "$TAG" ]; then
-              echo "$short stays at $newest; $TAG is older."
+            if [ "$newest" != "$TAG" ] && [ "$FORCE" != true ]; then
+              echo "::notice::$short stays at $newest; $TAG is older. Re-run with force to override."
               continue
             fi
-            git tag -f -a "$short" -m "$short is $TAG" "$GITHUB_SHA"
+
+            git tag -f -a "$short" -m "$short is $TAG" "$sha"
             git push -f origin "refs/tags/$short"
-            echo "$short -> $TAG"
+            echo "::notice::$short -> $TAG"
           done

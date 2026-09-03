@@ -50,8 +50,13 @@ Both pins MUST move together.
 
 ## Releases
 
-Tag a release `vX.Y.Z`; `.github/workflows/release-tags.yml` moves the matching
-`vX` and `vX.Y` tags, skipping prereleases and any release that is not the
-newest under its prefix. Publish to the Marketplace from the GitHub release
-page. Treat a change to an existing input, default or output as at least a minor
-release.
+Tag a release `vX.Y.Z` and publish it to the Marketplace from its GitHub
+release page. Treat a change to an existing input, default or output as at least
+a minor release.
+
+Moving the short `vX` and `vX.Y` tags is a separate, deliberate step: dispatch
+`.github/workflows/release-tags.yml` with the release tag once its `test` run is
+green. Nothing moves them automatically, and the job MUST stay behind the
+`release-tags` environment's reviewers -- these are the tags that move under
+people who already wrote `@vX`. It refuses prereleases and missing tags, and it
+skips a release that is not the newest under its prefix unless `force` is set.
