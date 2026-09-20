@@ -25,7 +25,7 @@ jobs:
           - { os: windows-latest, manager: pnpm }
           - { os: macos-latest, manager: pnpm }
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - id: setup
         uses: ./
         with:
@@ -62,7 +62,7 @@ jobs:
   unpinned:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - shell: bash
         run: |
           set -euo pipefail
@@ -90,7 +90,7 @@ jobs:
   version-file:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - shell: bash
         run: |
           set -euo pipefail
@@ -116,7 +116,7 @@ jobs:
   no-install:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - id: setup
         uses: ./
         with:
@@ -138,7 +138,7 @@ jobs:
   no-managers:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - id: setup
         uses: ./
         with:
@@ -161,7 +161,7 @@ jobs:
   requested-version:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - shell: bash
         run: |
           set -euo pipefail
