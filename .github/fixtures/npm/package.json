@@ -8,7 +8,7 @@
   "devEngines": {
     "packageManager": {
       "name": "npm",
-      "version": "^11"
+      "version": "^11.21.1"
     }
   }
 }
